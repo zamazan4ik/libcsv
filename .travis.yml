@@ -1,18 +1,26 @@
-sudo: false
+dist: trusty
 language: cpp
 compiler:
-  - gcc
-  - clang
+ - g++-7
+ - clang-4.0
+sudo: false
+#branches:
+#  only:
+#    - master
+#notifications:
+#  email:
+#    recipients:
+#      - zamazan4ik@tut.by
+
 addons:
   apt:
     sources:
     - ubuntu-toolchain-r-test
-    - llvm-toolchain-precise-3.8
+    - llvm-toolchain-trusty-4.0
     packages:
-    - g++-6
-    - clang-3.8
-install:
-- "[ $CXX = g++ ] && export CXX=g++-6 || true"
-- "[ $CXX = clang++ ] && export CXX=clang++-3.8 || true"
+    - g++-7
+    - clang-4.0
+    - cmake
+
 script:
-  - cmake .
+ - cmake .
