@@ -126,3 +126,4 @@ before_install:
 
 script:
  - cmake .
+ - make
