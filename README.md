@@ -1,5 +1,7 @@
 # Fast C++ CSV Parser
 
+[![Build Status](https://travis-ci.org/ZaMaZaN4iK/libcsv.svg?branch=master)](https://travis-ci.org/ZaMaZaN4iK/libcsv)
+
 This is a small, easy-to-use and fast header-only library for reading comma separated value (CSV) files. 
 
 ## Features

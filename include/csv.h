@@ -1541,7 +1541,6 @@ public:
         {
             try
             {
-
                 char* line;
                 do
                 {
@@ -1573,6 +1572,16 @@ public:
         return true;
     }
 };
+
+
+template<unsigned column_count,
+        typename trim_policy = trim_chars<>,
+        typename quote_policy = no_quote_escape<'\t'>,
+        typename overflow_policy = throw_on_overflow,
+        typename comment_policy = no_comment
+>
+using TSVReader = CSVReader<column_count, trim_policy, quote_policy, overflow_policy, comment_policy>;
+
 }
 #endif
 
