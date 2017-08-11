@@ -1,7 +1,10 @@
 dist: trusty
 language: cpp
+os:
+ - linux
+ - osx
 compiler:
- - g++
+ - gcc
  - clang
 sudo: false
 matrix:
