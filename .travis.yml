@@ -27,11 +27,11 @@ matrix:
         coverity_scan:
           project:
             name: "ZaMaZaN4iK/libcsv"
-            description: "CSV library"
+            description: ""
           notification_email: zamazan4ik@tut.by
           build_command_prepend: "cmake ."
           build_command:   "make"
-          branch_pattern: coverity_scan
+          branch_pattern: master
       env:
          - MATRIX_EVAL="CC=gcc-4.9 && CXX=g++-4.9"
 
