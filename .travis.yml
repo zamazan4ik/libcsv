@@ -6,7 +6,7 @@ os:
 compiler:
  - gcc
  - clang
-sudo: false
+sudo: true
 
 env:
   global:
