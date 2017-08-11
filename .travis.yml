@@ -8,6 +8,11 @@ compiler:
  - clang
 sudo: true
 
+
+before_install:
+  - eval "${MATRIX_EVAL}"
+  - if [ $TRAVIS_OS_NAME = linux ]; then echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
+
 env:
   global:
    # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created
@@ -26,10 +31,6 @@ matrix:
             - g++-4.9
       env:
          - MATRIX_EVAL="CC=gcc-4.9 && CXX=g++-4.9"
-      before_install:
-          - eval "${MATRIX_EVAL}"
-          - echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
-
 
     # works on Precise and Trusty
     - os: linux
@@ -41,9 +42,6 @@ matrix:
             - g++-5
       env:
          - MATRIX_EVAL="CC=gcc-5 && CXX=g++-5"
-      before_install:
-          - eval "${MATRIX_EVAL}"
-          - echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
 
     # works on Precise and Trusty
     - os: linux
@@ -55,9 +53,10 @@ matrix:
             - g++-6
       env:
         - MATRIX_EVAL="CC=gcc-6 && CXX=g++-6"
-      before_install:
-          - eval "${MATRIX_EVAL}"
-          - echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
+
+
+
+
 
     # Clang builds part
     # works on Precise and Trusty
@@ -71,10 +70,8 @@ matrix:
             - clang-3.6
       env:
         - MATRIX_EVAL="CC=clang-3.6 && CXX=clang++-3.6"
-      before_install:
-          - eval "${MATRIX_EVAL}"
-          - echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
-       # works on Precise and Trusty
+
+    # works on Precise and Trusty
     - os: linux
       addons:
         apt:
@@ -85,10 +82,8 @@ matrix:
             - clang-3.7
       env:
         - MATRIX_EVAL="CC=clang-3.7 && CXX=clang++-3.7"
-      before_install:
-          - eval "${MATRIX_EVAL}"
-          - echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
-       # works on Precise and Trusty
+
+    # works on Precise and Trusty
     - os: linux
       addons:
         apt:
@@ -99,10 +94,8 @@ matrix:
             - clang-3.8
       env:
         - MATRIX_EVAL="CC=clang-3.8 && CXX=clang++-3.8"
-      before_install:
-          - eval "${MATRIX_EVAL}"
-          - echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
-       # works on Trusty
+
+    # works on Trusty
     - os: linux
       addons:
         apt:
@@ -112,10 +105,8 @@ matrix:
             - clang-3.9
       env:
         - MATRIX_EVAL="CC=clang-3.9 && CXX=clang++-3.9"
-      before_install:
-          - eval "${MATRIX_EVAL}"
-          - echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
-       # works on Trusty
+
+    # works on Trusty
     - os: linux
       addons:
         apt:
@@ -125,22 +116,24 @@ matrix:
             - clang-4.0
       env:
         - MATRIX_EVAL="CC=clang-4.0 && CXX=clang++-4.0"
-      before_install:
-          - eval "${MATRIX_EVAL}"
-          - echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
-       # works on Trusty
+
+    # works on Trusty
     - os: linux
       addons:
         apt:
           sources:
-            - llvm-toolchain-trusty-5.0
+            - sourceline: 'deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-5.0 main'
+              key_url: 'https://apt.llvm.org/llvm-snapshot.gpg.key'
           packages:
             - clang-5.0
       env:
         - MATRIX_EVAL="CC=clang-5.0 && CXX=clang++-5.0"
-      before_install:
-          - eval "${MATRIX_EVAL}"
-          - echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
+
+
+
+
+
+
 
     # MacOS builds part
     # works on MacOS
@@ -153,26 +146,17 @@ matrix:
     - os: osx
       env:
         - MATRIX_EVAL="brew install gcc5 && CC=gcc-5 && CXX=g++-5"
-      before_install:
-          - eval "${MATRIX_EVAL}"
-
 
     - os: osx
       env:
         - MATRIX_EVAL="brew install gcc6 && CC=gcc-6 && CXX=g++-6"
-      before_install:
-          - eval "${MATRIX_EVAL}"
 
-
-#before_install:
-#    - eval "${MATRIX_EVAL}"
-#    - echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
 
 addons:
   coverity_scan:
     project:
       name: "ZaMaZaN4iK/libcsv"
-      description: ""
+      description: "Static analyze from Travis CI"
     notification_email: zamazan4ik@tut.by
     build_command_prepend: "cmake ."
     build_command:   "make"
