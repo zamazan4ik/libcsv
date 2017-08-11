@@ -26,6 +26,9 @@ matrix:
             - g++-4.9
       env:
          - MATRIX_EVAL="CC=gcc-4.9 && CXX=g++-4.9"
+      before_install:
+          - eval "${MATRIX_EVAL}"
+          - echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
 
 
     # works on Precise and Trusty
@@ -38,6 +41,9 @@ matrix:
             - g++-5
       env:
          - MATRIX_EVAL="CC=gcc-5 && CXX=g++-5"
+      before_install:
+          - eval "${MATRIX_EVAL}"
+          - echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
 
     # works on Precise and Trusty
     - os: linux
@@ -49,6 +55,9 @@ matrix:
             - g++-6
       env:
         - MATRIX_EVAL="CC=gcc-6 && CXX=g++-6"
+      before_install:
+          - eval "${MATRIX_EVAL}"
+          - echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
 
     # Clang builds part
     # works on Precise and Trusty
@@ -62,6 +71,9 @@ matrix:
             - clang-3.6
       env:
         - MATRIX_EVAL="CC=clang-3.6 && CXX=clang++-3.6"
+      before_install:
+          - eval "${MATRIX_EVAL}"
+          - echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
        # works on Precise and Trusty
     - os: linux
       addons:
@@ -73,6 +85,9 @@ matrix:
             - clang-3.7
       env:
         - MATRIX_EVAL="CC=clang-3.7 && CXX=clang++-3.7"
+      before_install:
+          - eval "${MATRIX_EVAL}"
+          - echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
        # works on Precise and Trusty
     - os: linux
       addons:
@@ -84,6 +99,9 @@ matrix:
             - clang-3.8
       env:
         - MATRIX_EVAL="CC=clang-3.8 && CXX=clang++-3.8"
+      before_install:
+          - eval "${MATRIX_EVAL}"
+          - echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
        # works on Trusty
     - os: linux
       addons:
@@ -94,6 +112,9 @@ matrix:
             - clang-3.9
       env:
         - MATRIX_EVAL="CC=clang-3.9 && CXX=clang++-3.9"
+      before_install:
+          - eval "${MATRIX_EVAL}"
+          - echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
        # works on Trusty
     - os: linux
       addons:
@@ -104,6 +125,9 @@ matrix:
             - clang-4.0
       env:
         - MATRIX_EVAL="CC=clang-4.0 && CXX=clang++-4.0"
+      before_install:
+          - eval "${MATRIX_EVAL}"
+          - echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
        # works on Trusty
     - os: linux
       addons:
@@ -114,24 +138,35 @@ matrix:
             - clang-5.0
       env:
         - MATRIX_EVAL="CC=clang-5.0 && CXX=clang++-5.0"
+      before_install:
+          - eval "${MATRIX_EVAL}"
+          - echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
 
     # MacOS builds part
     # works on MacOS
     - os: osx
       env:
         - MATRIX_EVAL="CC=gcc-4.9 && CXX=g++-4.9"
+      before_install:
+          - eval "${MATRIX_EVAL}"
 
     - os: osx
       env:
         - MATRIX_EVAL="brew install gcc5 && CC=gcc-5 && CXX=g++-5"
+      before_install:
+          - eval "${MATRIX_EVAL}"
+
 
     - os: osx
       env:
         - MATRIX_EVAL="brew install gcc && CC=gcc-6 && CXX=g++-6"
+      before_install:
+          - eval "${MATRIX_EVAL}"
 
-before_install:
-    - eval "${MATRIX_EVAL}"
-    - echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
+
+#before_install:
+#    - eval "${MATRIX_EVAL}"
+#    - echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
 
 addons:
   coverity_scan:
