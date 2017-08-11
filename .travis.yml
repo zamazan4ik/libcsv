@@ -24,14 +24,6 @@ matrix:
             - ubuntu-toolchain-r-test
           packages:
             - g++-4.9
-        coverity_scan:
-          project:
-            name: "ZaMaZaN4iK/libcsv"
-            description: ""
-          notification_email: zamazan4ik@tut.by
-          build_command_prepend: "cmake ."
-          build_command:   "make"
-          branch_pattern: master
       env:
          - MATRIX_EVAL="CC=gcc-4.9 && CXX=g++-4.9"
 
@@ -126,23 +118,30 @@ matrix:
     # MacOS builds part
     # works on MacOS
     - os: osx
-      osx_image: xcode8
       env:
         - MATRIX_EVAL="CC=gcc-4.9 && CXX=g++-4.9"
 
     - os: osx
-      osx_image: xcode8
       env:
         - MATRIX_EVAL="brew install gcc5 && CC=gcc-5 && CXX=g++-5"
 
     - os: osx
-      osx_image: xcode8
       env:
         - MATRIX_EVAL="brew install gcc && CC=gcc-6 && CXX=g++-6"
 
 before_install:
     - eval "${MATRIX_EVAL}"
     - echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
+
+addons:
+  coverity_scan:
+    project:
+      name: "ZaMaZaN4iK/libcsv"
+      description: ""
+    notification_email: zamazan4ik@tut.by
+    build_command_prepend: "cmake ."
+    build_command:   "make"
+    branch_pattern: master
 
 script:
  - cmake .
