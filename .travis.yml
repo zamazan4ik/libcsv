@@ -11,7 +11,7 @@ sudo: true
 
 before_install:
   - eval "${MATRIX_EVAL}"
-  - 'if [[ $TRAVIS_OS_NAME = linux ]]; then echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-'
+  - 'if [[ $TRAVIS_OS_NAME = linux ]]; then echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne "/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p" | sudo tee -a /etc/ssl/certs/ca-'
 
 
 env:
