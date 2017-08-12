@@ -5,6 +5,7 @@
   <img alt="Coverity Scan Build Status"
        src="https://scan.coverity.com/projects/13462/badge.svg"/>
 </a>
+[ ![Download](null/packages/zamazan4ik/zamrep/libcsv%3Ademo/images/download.svg?version=1.0.0%3Atesting) ](https://bintray.com/zamazan4ik/zamrep/libcsv%3Ademo/1.0.0%3Atesting/link)
 
 This is a small, easy-to-use and fast header-only library for reading comma separated value (CSV) files. 
 
