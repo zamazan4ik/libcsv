@@ -8,11 +8,15 @@ compiler:
  - clang
 sudo: true
 
-
 before_install:
   - eval "${MATRIX_EVAL}"
-  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-; fi
+  - if [ "$TRAVIS_OS_NAME" = "linux"]; then echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-; fi
 
+install:
+  - if [ "$TRAVIS_OS_NAME" = "linux"]; then sudo apt-get install cppcheck; fi
+
+script:
+  - if [ "$TRAVIS_OS_NAME" = "linux"]; then cppcheck --quiet --error-exitcode=1 . ; fi
 
 env:
   global:
