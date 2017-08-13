@@ -37,13 +37,13 @@ matrix:
             - g++-4.9
             - cppcheck
         coverity_scan:
-            project:
-              name: "ZaMaZaN4iK/libcsv"
-              description: "Static analyze from Travis CI"
-            notification_email: zamazan4ik@tut.by
-            build_command_prepend: "cmake ."
-            build_command:   "make"
-            branch_pattern: master
+          project:
+            name: "ZaMaZaN4iK/libcsv"
+            description: "Static analyze from Travis CI"
+          notification_email: zamazan4ik@tut.by
+          build_command_prepend: "cmake ."
+          build_command:   "make"
+          branch_pattern: master
       env:
          - MATRIX_EVAL="CC=gcc-4.9 && CXX=g++-4.9"
 
@@ -143,18 +143,6 @@ matrix:
             - clang-5.0
       env:
         - MATRIX_EVAL="CC=clang-5.0 && CXX=clang++-5.0"
-
-    # works on Trusty
-    - os: linux
-      addons:
-        apt:
-          sources:
-            - sourceline: 'deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty main'
-              key_url: 'https://apt.llvm.org/llvm-snapshot.gpg.key'
-          packages:
-            - clang-6.0
-      env:
-        - MATRIX_EVAL="CC=clang-6.0 && CXX=clang++-6.0"
 
 
 
