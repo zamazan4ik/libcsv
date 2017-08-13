@@ -36,6 +36,7 @@ matrix:
           packages:
             - g++-4.9
             - cppcheck
+      addons:
         coverity_scan:
           project:
             name: "ZaMaZaN4iK/libcsv"
