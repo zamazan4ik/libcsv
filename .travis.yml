@@ -13,10 +13,12 @@ compiler:
 before_install:
   - eval "${MATRIX_EVAL}"
   - if [ "$TRAVIS_OS_NAME" = "linux" ] && [ "${MATRIX_EVAL}" = "CC=gcc-4.9 && CXX=g++-4.9" ]; then echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-; fi
+  - if [ "$TRAVIS_OS_NAME" = "linux" ] && [ "${MATRIX_EVAL}" = "CC=gcc-4.9 && CXX=g++-4.9" ]; then pip install --user cpp-coveralls; fi
 
 script:
  - cmake .
  - make
+ - make check
  - if [ "$TRAVIS_OS_NAME" = "linux" ] && [ "${MATRIX_EVAL}" = "CC=gcc-4.9 && CXX=g++-4.9" ]; then cppcheck --error-exitcode=1 example/ ; fi
 
 env:
@@ -30,15 +32,15 @@ env:
 #  - ENABLE_MULTITHREAD=OFF
 #  - CXX_STANDARD_LIBRARY=libc++
 #  - CXX_STANDARD_LIBRARY=libstdc++
-addons:
-        coverity_scan:
-          project:
-            name: "ZaMaZaN4iK/libcsv"
-            description: "Static analyze from Travis CI"
-          notification_email: zamazan4ik@tut.by
-          build_command_prepend: "cmake ."
-          build_command:   "make"
-          branch_pattern: master
+#addons:
+#        coverity_scan:
+#          project:
+#            name: "ZaMaZaN4iK/libcsv"
+#            description: "Static analyze from Travis CI"
+#          notification_email: zamazan4ik@tut.by
+#          build_command_prepend: "cmake ."
+#          build_command:   "make"
+#          branch_pattern: master
 
 matrix:
   include:
