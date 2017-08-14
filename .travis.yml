@@ -18,7 +18,6 @@ before_install:
 script:
  - cmake .
  - make
- - make check
  - if [ "$TRAVIS_OS_NAME" = "linux" ] && [ "${MATRIX_EVAL}" = "CC=gcc-4.9 && CXX=g++-4.9" ]; then cppcheck --error-exitcode=1 example/ ; fi
 
 env:
