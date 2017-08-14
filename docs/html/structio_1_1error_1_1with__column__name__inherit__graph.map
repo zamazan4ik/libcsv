@@ -1,0 +1,10 @@
+<map id="io::error::with_column_name" name="io::error::with_column_name">
+<area shape="rect" id="node2" href="$structio_1_1error_1_1duplicated__column__in__header.html" title="io::error::duplicated\l_column_in_header" alt="" coords="249,5,383,47"/>
+<area shape="rect" id="node3" href="$structio_1_1error_1_1extra__column__in__header.html" title="io::error::extra_column\l_in_header" alt="" coords="240,71,392,112"/>
+<area shape="rect" id="node4" href="$structio_1_1error_1_1integer__must__be__positive.html" title="io::error::integer\l_must_be_positive" alt="" coords="251,136,381,177"/>
+<area shape="rect" id="node5" href="$structio_1_1error_1_1integer__overflow.html" title="io::error::integer\l_overflow" alt="" coords="259,201,373,243"/>
+<area shape="rect" id="node6" href="$structio_1_1error_1_1integer__underflow.html" title="io::error::integer\l_underflow" alt="" coords="259,267,373,308"/>
+<area shape="rect" id="node7" href="$structio_1_1error_1_1invalid__single__character.html" title="io::error::invalid\l_single_character" alt="" coords="254,332,378,373"/>
+<area shape="rect" id="node8" href="$structio_1_1error_1_1missing__column__in__header.html" title="io::error::missing\l_column_in_header" alt="" coords="249,397,383,439"/>
+<area shape="rect" id="node9" href="$structio_1_1error_1_1no__digit.html" title="io::error::no_digit" alt="" coords="257,463,375,490"/>
+</map>

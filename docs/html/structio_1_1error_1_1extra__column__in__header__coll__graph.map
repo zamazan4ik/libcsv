@@ -1,0 +1,5 @@
+<map id="io::error::extra_column_in_header" name="io::error::extra_column_in_header">
+<area shape="rect" id="node2" href="$structio_1_1error_1_1base.html" title="io::error::base" alt="" coords="6,80,109,107"/>
+<area shape="rect" id="node4" href="$structio_1_1error_1_1with__file__name.html" title="io::error::with_file_name" alt="" coords="133,80,294,107"/>
+<area shape="rect" id="node5" href="$structio_1_1error_1_1with__column__name.html" title="io::error::with_column_name" alt="" coords="319,80,505,107"/>
+</map>

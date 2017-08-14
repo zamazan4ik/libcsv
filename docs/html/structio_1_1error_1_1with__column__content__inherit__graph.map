@@ -1,0 +1,7 @@
+<map id="io::error::with_column_content" name="io::error::with_column_content">
+<area shape="rect" id="node2" href="$structio_1_1error_1_1integer__must__be__positive.html" title="io::error::integer\l_must_be_positive" alt="" coords="200,5,331,47"/>
+<area shape="rect" id="node3" href="$structio_1_1error_1_1integer__overflow.html" title="io::error::integer\l_overflow" alt="" coords="209,71,322,112"/>
+<area shape="rect" id="node4" href="$structio_1_1error_1_1integer__underflow.html" title="io::error::integer\l_underflow" alt="" coords="209,136,322,177"/>
+<area shape="rect" id="node5" href="$structio_1_1error_1_1invalid__single__character.html" title="io::error::invalid\l_single_character" alt="" coords="203,201,327,243"/>
+<area shape="rect" id="node6" href="$structio_1_1error_1_1no__digit.html" title="io::error::no_digit" alt="" coords="206,267,325,294"/>
+</map>

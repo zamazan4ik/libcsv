@@ -1,0 +1,16 @@
+<map id="io::error::with_file_name" name="io::error::with_file_name">
+<area shape="rect" id="node2" href="$structio_1_1error_1_1can__not__open__file.html" title="io::error::can_not\l_open_file" alt="" coords="237,5,357,47"/>
+<area shape="rect" id="node3" href="$structio_1_1error_1_1duplicated__column__in__header.html" title="io::error::duplicated\l_column_in_header" alt="" coords="230,71,365,112"/>
+<area shape="rect" id="node4" href="$structio_1_1error_1_1escaped__string__not__closed.html" title="io::error::escaped\l_string_not_closed" alt="" coords="232,136,363,177"/>
+<area shape="rect" id="node5" href="$structio_1_1error_1_1extra__column__in__header.html" title="io::error::extra_column\l_in_header" alt="" coords="221,201,373,243"/>
+<area shape="rect" id="node6" href="$structio_1_1error_1_1header__missing.html" title="io::error::header_missing" alt="" coords="215,267,380,294"/>
+<area shape="rect" id="node7" href="$structio_1_1error_1_1integer__must__be__positive.html" title="io::error::integer\l_must_be_positive" alt="" coords="232,319,363,360"/>
+<area shape="rect" id="node8" href="$structio_1_1error_1_1integer__overflow.html" title="io::error::integer\l_overflow" alt="" coords="241,384,354,425"/>
+<area shape="rect" id="node9" href="$structio_1_1error_1_1integer__underflow.html" title="io::error::integer\l_underflow" alt="" coords="241,449,354,491"/>
+<area shape="rect" id="node10" href="$structio_1_1error_1_1invalid__single__character.html" title="io::error::invalid\l_single_character" alt="" coords="235,515,359,556"/>
+<area shape="rect" id="node11" href="$structio_1_1error_1_1line__length__limit__exceeded.html" title="io::error::line_length\l_limit_exceeded" alt="" coords="229,580,365,621"/>
+<area shape="rect" id="node12" href="$structio_1_1error_1_1missing__column__in__header.html" title="io::error::missing\l_column_in_header" alt="" coords="230,645,365,687"/>
+<area shape="rect" id="node13" href="$structio_1_1error_1_1no__digit.html" title="io::error::no_digit" alt="" coords="238,711,357,738"/>
+<area shape="rect" id="node14" href="$structio_1_1error_1_1too__few__columns.html" title="io::error::too_few\l_columns" alt="" coords="237,763,357,804"/>
+<area shape="rect" id="node15" href="$structio_1_1error_1_1too__many__columns.html" title="io::error::too_many\l_columns" alt="" coords="232,828,363,869"/>
+</map>

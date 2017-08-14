@@ -1,0 +1,7 @@
+<map id="io::error::integer_must_be_positive" name="io::error::integer_must_be_positive">
+<area shape="rect" id="node2" href="$structio_1_1error_1_1base.html" title="io::error::base" alt="" coords="199,5,302,32"/>
+<area shape="rect" id="node4" href="$structio_1_1error_1_1with__file__name.html" title="io::error::with_file_name" alt="" coords="170,56,331,83"/>
+<area shape="rect" id="node5" href="$structio_1_1error_1_1with__file__line.html" title="io::error::with_file_line" alt="" coords="176,107,325,133"/>
+<area shape="rect" id="node6" href="$structio_1_1error_1_1with__column__name.html" title="io::error::with_column_name" alt="" coords="157,157,344,184"/>
+<area shape="rect" id="node7" href="$structio_1_1error_1_1with__column__content.html" title="io::error::with_column\l_content" alt="" coords="177,209,324,250"/>
+</map>
