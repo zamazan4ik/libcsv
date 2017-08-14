@@ -53,6 +53,12 @@
 
 #endif
 
+#if __cplusplus > 201402L
+
+#include <filesystem>
+
+#endif
+
 namespace io
 {
 ////////////////////////////////////////////////////////////////////////////
@@ -74,22 +80,14 @@ struct base : public std::exception
     mutable char error_message_buffer[256];
 };
 
-const int max_file_name_length = 255;
-
 struct with_file_name
 {
-    with_file_name()
-    {
-        std::memset(file_name, 0, max_file_name_length + 1);
-    }
-
     void set_file_name(const char* file_name)
     {
-        std::strncpy(this->file_name, file_name, max_file_name_length);
-        this->file_name[max_file_name_length] = '\0';
+        this->file_name = file_name;
     }
 
-    char file_name[max_file_name_length + 1];
+    std::string file_name;
 };
 
 struct with_file_line
@@ -132,12 +130,12 @@ struct can_not_open_file :
         if (errno_value != 0)
         {
             std::snprintf(error_message_buffer, sizeof(error_message_buffer),
-                          "Can not open file \"%s\" because \"%s\".", file_name, std::strerror(errno_value));
+                          "Can not open file \"%s\" because \"%s\".", file_name.c_str(), std::strerror(errno_value));
         }
         else
         {
             std::snprintf(error_message_buffer, sizeof(error_message_buffer),
-                          "Can not open file \"%s\".", file_name);
+                          "Can not open file \"%s\".", file_name.c_str());
         }
     }
 };
@@ -150,7 +148,7 @@ struct line_length_limit_exceeded :
     void format_error_message() const
     {
         std::snprintf(error_message_buffer, sizeof(error_message_buffer),
-                      "Line number %d in file \"%s\" exceeds the maximum length of 2^24-1.", file_line, file_name);
+                      "Line number %d in file \"%s\" exceeds the maximum length of 2^24-1.", file_line, file_name.c_str());
     }
 };
 }
@@ -393,7 +391,7 @@ private:
     int data_begin;
     int data_end;
 
-    char file_name[error::max_file_name_length + 1];
+    std::string file_name;
     unsigned file_line;
 
     static std::unique_ptr<ByteSourceBase> open_file(const char* file_name)
@@ -507,13 +505,12 @@ public:
 
     void set_file_name(const char* file_name)
     {
-        strncpy(this->file_name, file_name, error::max_file_name_length);
-        this->file_name[error::max_file_name_length] = '\0';
+        this->file_name = file_name;
     }
 
     const char* get_truncated_file_name() const
     {
-        return file_name;
+        return file_name.c_str();
     }
 
     void set_file_line(unsigned file_line)
@@ -560,7 +557,7 @@ public:
         if (line_end - data_begin + 1 > block_len)
         {
             error::line_length_limit_exceeded err;
-            err.set_file_name(file_name);
+            err.set_file_name(file_name.c_str());
             err.set_file_line(file_line);
             throw err;
         }
@@ -596,41 +593,26 @@ public:
 
 namespace error
 {
-const int max_column_name_length = 63;
 
 struct with_column_name
 {
-    with_column_name()
-    {
-        std::fill(column_name, column_name + max_column_name_length + 1, 0);
-    }
-
     void set_column_name(const char* column_name)
     {
-        std::strncpy(this->column_name, column_name, max_column_name_length);
-        this->column_name[max_column_name_length] = '\0';
+        this->column_name = column_name;
     }
 
-    char column_name[max_column_name_length + 1];
+    std::string column_name;
 };
 
 
-const int max_column_content_length = 63;
-
 struct with_column_content
 {
-    with_column_content()
-    {
-        std::fill(column_content, column_content + max_column_content_length + 1, 0);
-    }
-
     void set_column_content(const char* column_content)
     {
-        std::strncpy(this->column_content, column_content, max_column_content_length);
-        this->column_content[max_column_content_length] = '\0';
+        this->column_content = column_content;
     }
 
-    char column_content[max_column_content_length + 1];
+    std::string column_content;
 };
 
 
@@ -642,7 +624,7 @@ struct extra_column_in_header :
     void format_error_message() const
     {
         std::snprintf(error_message_buffer, sizeof(error_message_buffer),
-                      "Extra column \"%s\" in header of file \"%s\".", column_name, file_name);
+                      "Extra column \"%s\" in header of file \"%s\".", column_name.c_str(), file_name.c_str());
     }
 };
 
@@ -654,7 +636,7 @@ struct missing_column_in_header :
     void format_error_message() const
     {
         std::snprintf(error_message_buffer, sizeof(error_message_buffer),
-                      "Missing column \"%s\" in header of file \"%s\".", column_name, file_name);
+                      "Missing column \"%s\" in header of file \"%s\".", column_name.c_str(), file_name.c_str());
     }
 };
 
@@ -666,7 +648,7 @@ struct duplicated_column_in_header :
     void format_error_message() const
     {
         std::snprintf(error_message_buffer, sizeof(error_message_buffer),
-                      "Duplicated column \"%s\" in header of file \"%s\".", column_name, file_name);
+                      "Duplicated column \"%s\" in header of file \"%s\".", column_name.c_str(), file_name.c_str());
     }
 };
 
@@ -677,7 +659,7 @@ struct header_missing :
     void format_error_message() const
     {
         std::snprintf(error_message_buffer, sizeof(error_message_buffer),
-                      "Header missing in file \"%s\".", file_name);
+                      "Header missing in file \"%s\".", file_name.c_str());
     }
 };
 
@@ -689,7 +671,7 @@ struct too_few_columns :
     void format_error_message() const
     {
         std::snprintf(error_message_buffer, sizeof(error_message_buffer),
-                      "Too few columns in line %d in file \"%s\".", file_line, file_name);
+                      "Too few columns in line %d in file \"%s\".", file_line, file_name.c_str());
     }
 };
 
@@ -701,7 +683,7 @@ struct too_many_columns :
     void format_error_message() const
     {
         std::snprintf(error_message_buffer, sizeof(error_message_buffer),
-                      "Too many columns in line %d in file \"%s\".", file_line, file_name);
+                      "Too many columns in line %d in file \"%s\".", file_line, file_name.c_str());
     }
 };
 
@@ -713,7 +695,7 @@ struct escaped_string_not_closed :
     void format_error_message() const
     {
         std::snprintf(error_message_buffer, sizeof(error_message_buffer),
-                      "Escaped string was not closed in line %d in file \"%s\".", file_line, file_name);
+                      "Escaped string was not closed in line %d in file \"%s\".", file_line, file_name.c_str());
     }
 };
 
@@ -728,7 +710,7 @@ struct integer_must_be_positive :
     {
         std::snprintf(error_message_buffer, sizeof(error_message_buffer),
                       "The integer \"%s\" must be positive or 0 in column \"%s\" in file \"%s\" in line \"%d\".",
-                      column_content, column_name, file_name, file_line);
+                      column_content.c_str(), column_name.c_str(), file_name.c_str(), file_line);
     }
 };
 
@@ -743,7 +725,7 @@ struct no_digit :
     {
         std::snprintf(error_message_buffer, sizeof(error_message_buffer),
                       "The integer \"%s\" contains an invalid digit in column \"%s\" in file \"%s\" in line \"%d\".",
-                      column_content, column_name, file_name, file_line);
+                      column_content.c_str(), column_name.c_str(), file_name.c_str(), file_line);
     }
 };
 
@@ -757,8 +739,8 @@ struct integer_overflow :
     void format_error_message() const
     {
         std::snprintf(error_message_buffer, sizeof(error_message_buffer),
-                      "The integer \"%s\" overflows in column \"%s\" in file \"%s\" in line \"%d\".", column_content,
-                      column_name, file_name, file_line);
+                      "The integer \"%s\" overflows in column \"%s\" in file \"%s\" in line \"%d\".", column_content.c_str(),
+                      column_name.c_str(), file_name.c_str(), file_line);
     }
 };
 
@@ -772,8 +754,8 @@ struct integer_underflow :
     void format_error_message() const
     {
         std::snprintf(error_message_buffer, sizeof(error_message_buffer),
-                      "The integer \"%s\" underflows in column \"%s\" in file \"%s\" in line \"%d\".", column_content,
-                      column_name, file_name, file_line);
+                      "The integer \"%s\" underflows in column \"%s\" in file \"%s\" in line \"%d\".", column_content.c_str(),
+                      column_name.c_str(), file_name.c_str(), file_line);
     }
 };
 
@@ -788,7 +770,7 @@ struct invalid_single_character :
     {
         std::snprintf(error_message_buffer, sizeof(error_message_buffer),
                       "The content \"%s\" of column \"%s\" in file \"%s\" in line \"%d\" is not a single character.",
-                      column_content, column_name, file_name, file_line);
+                      column_content.c_str(), column_name.c_str(), file_name.c_str(), file_line);
     }
 };
 }
@@ -1011,7 +993,7 @@ struct set_to_max_on_overflow
 
 namespace detail
 {
-template<class quote_policy>
+template<typename quote_policy>
 void chop_next_column(
         char*& line, char*& col_begin, char*& col_end
 )
@@ -1183,23 +1165,23 @@ void parse_unsigned_integer(const char* col, T& x)
 }
 
 template<typename overflow_policy>
-void parse(char* col, unsigned char& x)
+void parse(char* col, unsigned char x)
 { parse_unsigned_integer<overflow_policy>(col, x); }
 
 template<typename overflow_policy>
-void parse(char* col, unsigned short& x)
+void parse(char* col, unsigned short x)
 { parse_unsigned_integer<overflow_policy>(col, x); }
 
 template<typename overflow_policy>
-void parse(char* col, unsigned int& x)
+void parse(char* col, unsigned int x)
 { parse_unsigned_integer<overflow_policy>(col, x); }
 
 template<typename overflow_policy>
-void parse(char* col, unsigned long& x)
+void parse(char* col, unsigned long x)
 { parse_unsigned_integer<overflow_policy>(col, x); }
 
 template<typename overflow_policy>
-void parse(char* col, unsigned long long& x)
+void parse(char* col, unsigned long long x)
 { parse_unsigned_integer<overflow_policy>(col, x); }
 
 template<typename overflow_policy, typename T>
@@ -1238,23 +1220,23 @@ void parse_signed_integer(const char* col, T& x)
 }
 
 template<typename overflow_policy>
-void parse(char* col, signed char& x)
+void parse(char* col, signed char x)
 { parse_signed_integer<overflow_policy>(col, x); }
 
 template<typename overflow_policy>
-void parse(char* col, signed short& x)
+void parse(char* col, signed short x)
 { parse_signed_integer<overflow_policy>(col, x); }
 
 template<typename overflow_policy>
-void parse(char* col, signed int& x)
+void parse(char* col, signed int x)
 { parse_signed_integer<overflow_policy>(col, x); }
 
 template<typename overflow_policy>
-void parse(char* col, signed long& x)
+void parse(char* col, signed long x)
 { parse_signed_integer<overflow_policy>(col, x); }
 
 template<typename overflow_policy>
-void parse(char* col, signed long long& x)
+void parse(char* col, signed long long x)
 { parse_signed_integer<overflow_policy>(col, x); }
 
 template<typename T>
@@ -1344,15 +1326,15 @@ void parse_float(const char* col, T& x)
 }
 
 template<typename overflow_policy>
-void parse(char* col, float& x)
+void parse(char* col, float x)
 { parse_float(col, x); }
 
 template<typename overflow_policy>
-void parse(char* col, double& x)
+void parse(char* col, double x)
 { parse_float(col, x); }
 
 template<typename overflow_policy>
-void parse(char* col, long double& x)
+void parse(char* col, long double x)
 { parse_float(col, x); }
 
 template<typename overflow_policy, typename T>
@@ -1401,7 +1383,7 @@ public:
 
     CSVReader& operator=(const CSVReader&) = delete;
 
-    template<class ...Args>
+    template<typename ...Args>
     explicit CSVReader(Args&& ...args) : in(std::forward<Args>(args)...)
     {
         std::fill(row, row + column_count, nullptr);
@@ -1418,7 +1400,7 @@ public:
     }
 
     template<typename ...ColNames>
-    void read_header(ignore_column ignore_policy, ColNames...cols)
+    void write_header(ignore_column ignore_policy, ColNames...cols)
     {
         static_assert(sizeof...(ColNames) >= column_count, "not enough column names specified");
         static_assert(sizeof...(ColNames) <= column_count, "too many column names specified");
@@ -1501,7 +1483,7 @@ private:
     void parse_helper(std::size_t)
     {}
 
-    template<class T, class ...ColType>
+    template<typename T, typename ...ColType>
     void parse_helper(std::size_t r, T& t, ColType& ...cols)
     {
         if (row[r])
