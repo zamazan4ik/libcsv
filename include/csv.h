@@ -1400,7 +1400,7 @@ public:
     }
 
     template<typename ...ColNames>
-    void write_header(ignore_column ignore_policy, ColNames...cols)
+    void read_header(ignore_column ignore_policy, ColNames...cols)
     {
         static_assert(sizeof...(ColNames) >= column_count, "not enough column names specified");
         static_assert(sizeof...(ColNames) <= column_count, "too many column names specified");
