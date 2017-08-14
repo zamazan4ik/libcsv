@@ -5,7 +5,10 @@
   <img alt="Coverity Scan Build Status"
        src="https://scan.coverity.com/projects/13462/badge.svg"/>
 </a>
-[ ![Download](null/packages/zamazan4ik/zamrep/libcsv%3Ademo/images/download.svg?version=1.0.0%3Atesting) ](https://bintray.com/zamazan4ik/zamrep/libcsv%3Ademo/1.0.0%3Atesting/link)
+
+[ ![Download](https://api.bintray.com/packages/zamazan4ik/zamrep/libcsv%3Azamazan4ik/images/download.svg) ](https://bintray.com/zamazan4ik/zamrep/libcsv%3Azamazan4ik/_latestVersion)
+
+[![Coverage Status](https://coveralls.io/repos/github/ZaMaZaN4iK/libcsv/badge.svg?branch=master)](https://coveralls.io/github/ZaMaZaN4iK/libcsv?branch=master)
 
 This is a small, easy-to-use and fast header-only library for reading comma separated value (CSV) files. 
 
