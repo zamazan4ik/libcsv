@@ -50,9 +50,12 @@
 
 namespace ios
 {
-////////////////////////////////////////////////////////////////////////////
-//                                 LineReader                             //
-////////////////////////////////////////////////////////////////////////////
+
+const char CsvSeparator = ',';
+const char TsvSeparator = '\t';
+const char ColpnSeparator = ':';
+const char ScsvSeparator = ';';
+
 
 namespace error
 {
@@ -281,19 +284,120 @@ struct too_many_columns :
 }
 
 
-template<unsigned column_count,
-         char separator = ','
->
-class CSVWriter
+//Quote policies
+template<char sep>
+struct quote_all
+{
+    static void process(std::string& str)
+    {
+        str = sep + str + sep;
+    }
+};
+
+template<char sep, char ... special_char_list>
+struct quote_minimal
 {
 private:
+    constexpr static bool is_special_char(char)
+    {
+        return false;
+    }
+
+    template<typename ...OtherTrimChars>
+    constexpr static bool is_special_char(char c, char trim_char, OtherTrimChars...other_special_chars)
+    {
+        return c == trim_char || is_special_char(c, other_special_chars...);
+    }
+
+    constexpr static bool is_special_string(const std::string& str)
+    {
+        for(const char glyph : str)
+        {
+            if(is_special_char(glyph, special_char_list...))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+public:
+    static void process(std::string& str)
+    {
+        if(is_special_string(str))
+        {
+
+        }
+    }
+};
+
+
+template<char sep>
+struct quote_none
+{
+    static void process(std::string& str)
+    {
+        str = sep + str + sep;
+    }
+};
+
+//Dialects
+template <typename Char>
+struct Dialect
+{
+/*    using DelimiterType = Delimiter;
+    using LineTerminatorType = LineTerminator;
+    using QuoteType = Quote;
+    using CommentType = Comment;
+    using QuotePolicyType = QuotePolicy;*/
+
+    using char_type = Char;
+
+    constexpr Dialect() = default;
+
+    constexpr Dialect(char_type delimiter1, char_type lineTerminator1, char_type quote1, char_type comment1) :
+            delimiter(delimiter1), lineTerminator(lineTerminator1), quote(quote1), comment(comment1)
+    {}
+
+
+    char_type delimiter;
+    char_type lineTerminator;
+    char_type quote;
+    char_type comment;
+};
+
+constexpr const Dialect<char> CSV     = Dialect<char>(',', '\n', '"', '#');
+constexpr const Dialect<char> TSV     = Dialect<char>('\t', '\n', '"', '#');
+constexpr const Dialect<char> SCSV    = Dialect<char>(';', '\n', '"', '#');
+constexpr const Dialect<char> PSV     = Dialect<char>('|', '\n', '"', '#');
+constexpr const Dialect<char> ColonSV = Dialect<char>(',', '\n', '"', '#');
+
+
+
+/*template<unsigned column_count,
+         char separator = ',',
+         typename quote_policy = quote_none<'"'>,
+         char comment_style = '#'
+>*/
+template <size_t column_count, template <char> typename quote_policy, typename DialectType = Dialect<char>>
+class DSVWriter
+{
+public:
+    /*using DelimiterType = typename DialectType::DelimiterType;
+    using LineTerminatorType = typename DialectType::LineTerminatorType;
+    using QuoteType = typename DialectType::QuoteType;
+    using CommentType = typename DialectType::CommentType;*/
+private:
     //LineWriter out;
+    DialectType dl;
     std::ofstream out;
     char* (row[column_count]);
     std::string column_names[column_count];
 
     bool m_force_double_quotes = false;
 
+    char separator = ',';
     template<typename ...ColNames>
     void set_column_names(std::string s, ColNames...cols)
     {
@@ -306,13 +410,14 @@ private:
 
 
 public:
-    CSVWriter() = delete;
+    DSVWriter() = delete;
 
-    CSVWriter(const CSVWriter&) = delete;
+    DSVWriter(const DSVWriter&) = delete;
 
-    CSVWriter& operator=(const CSVWriter&) = delete;
+    DSVWriter& operator=(const DSVWriter&) = delete;
 
-    CSVWriter(const std::string& filename, bool force_double_quotes = false) : m_force_double_quotes(force_double_quotes)
+    DSVWriter(const std::string& filename, const DialectType& dialect = CSV, bool force_double_quotes = false)
+            : dl(CSV), m_force_double_quotes(force_double_quotes)
     {
         out.open(filename, std::ios::binary);
     }
@@ -449,16 +554,16 @@ public:
 };
 
 
-template<unsigned column_count,
-         char separator = '\t'
+/*template<unsigned column_count,
+         typename Dialect
 >
-using TSVWriter = CSVWriter<column_count, separator>;
+using TSVWriter = DSVWriter<column_count, Dialect>;*/
 
 
-template<unsigned column_count,
-         char separator = ':'
+/*template<unsigned column_count,
+         typename Dialect
 >
-using ColonWriter = CSVWriter<column_count, separator>;
+using ColonWriter = CSVWriter<column_count, separator>;*/
 }
 #endif
 
