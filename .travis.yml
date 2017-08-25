@@ -20,7 +20,7 @@ script:
  - make
  - if [ "$TRAVIS_OS_NAME" = "linux" ] && [ "${MATRIX_EVAL}" = "CC=gcc-4.9 && CXX=g++-4.9" ]; then cppcheck --error-exitcode=1 example/ ; fi
  - if [ "$TRAVIS_OS_NAME" = "linux" ] && [ "${MATRIX_EVAL}" = "CC=clang-4.0 && CXX=clang++-4.0" ]; then cmake -DCMAKE_CXX_COMPILER=/usr/share/clang/scan-build-4.0/libexec/c++-analyzer . ; fi
- - if [ "$TRAVIS_OS_NAME" = "linux" ] && [ "${MATRIX_EVAL}" = "CC=clang-4.0 && CXX=clang++-4.0" ]; then scan-build make ; fi
+ - if [ "$TRAVIS_OS_NAME" = "linux" ] && [ "${MATRIX_EVAL}" = "CC=clang-4.0 && CXX=clang++-4.0" ]; then scan-build-4.0 make ; fi
 
 env:
   global:
