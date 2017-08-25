@@ -368,7 +368,7 @@ constexpr const Dialect<char> ColonSV = Dialect<char>(',', '\n', '"', '#');
 
 
 template <size_t column_count,
-        typename OutputStreamType,
+        typename OutputStreamType = std::ofstream,
         typename DialectType = Dialect<char>
 >
 class DSVWriter
