@@ -272,7 +272,7 @@ template<typename separator>
 struct quote_all
 {
     template<typename ... ColType>
-    constexpr static std::string process(const std::string& str, const separator& sep, ColType ...other_special_chars)
+    static std::string process(const std::string& str, const separator& sep, ColType ...other_special_chars)
     {
         return sep + str + sep;
     }
@@ -282,7 +282,7 @@ template<typename separator>
 struct quote_non_numeric
 {
     template<typename ...ColType>
-    constexpr static std::string process(const std::string& str, const separator& sep, ColType ...other_special_chars)
+    static std::string process(const std::string& str, const separator& sep, ColType ...other_special_chars)
     {
         return sep + str + sep;
     }
@@ -292,19 +292,19 @@ template<typename separator>
 struct quote_minimal
 {
 private:
-    constexpr static bool is_special_char(separator)
+    static bool is_special_char(separator)
     {
         return false;
     }
 
     template<typename ...ColType>
-    constexpr static bool is_special_char(separator c, separator trim_char, ColType ...other_special_chars)
+    static bool is_special_char(separator c, separator trim_char, ColType ...other_special_chars)
     {
         return c == trim_char || is_special_char(c, other_special_chars...);
     }
 
     template <typename ...ColType>
-    constexpr static bool is_special_string(const std::string& str, ColType& ...cols)
+    static bool is_special_string(const std::string& str, ColType& ...cols)
     {
         for(const char glyph : str)
         {
@@ -319,7 +319,7 @@ private:
 
 public:
     template <typename ...ColType>
-    constexpr static std::string process(const std::string& str, const separator& sep, ColType& ...cols)
+    static std::string process(const std::string& str, const separator& sep, ColType& ...cols)
     {
         if(is_special_string(str, cols...))
         {
@@ -334,7 +334,7 @@ template<typename separator>
 struct quote_none
 {
     template<typename ...ColType>
-    constexpr static std::string process(const std::string& str, const separator& sep, ColType ...other_special_chars)
+    static std::string process(const std::string& str, const separator& sep, ColType ...other_special_chars)
     {
         return str;
     }
@@ -414,26 +414,26 @@ public:
 private:
 
     template<typename T>
-    constexpr typename std::enable_if<!std::is_pod<T>::value, void>::type write_helper(T& t)
+    typename std::enable_if<!std::is_pod<T>::value, void>::type write_helper(T& t)
     {
         out << quote_policy::process(t, dl.quote) << dl.lineTerminator;
     }
 
     template<typename T, typename ...ColType>
-    constexpr typename std::enable_if<std::is_pod<T>::value, void>::type write_helper(T& t)
+    typename std::enable_if<std::is_pod<T>::value, void>::type write_helper(T& t)
     {
         out << quote_policy::process(std::to_string(t), dl.quote) << dl.lineTerminator;
     }
 
     template<typename T, typename ...ColType>
-    constexpr typename std::enable_if<!std::is_pod<T>::value, void>::type write_helper(T& t, ColType& ...cols)
+    typename std::enable_if<!std::is_pod<T>::value, void>::type write_helper(T& t, ColType& ...cols)
     {
         out << quote_policy::process(t, dl.quote, dl.delimiter, dl.quote, dl.lineTerminator) << dl.delimiter;
         write_helper(cols...);
     }
 
     template<typename T, typename ...ColType>
-    constexpr typename std::enable_if<std::is_pod<T>::value, void>::type write_helper(T& t, ColType& ...cols)
+    typename std::enable_if<std::is_pod<T>::value, void>::type write_helper(T& t, ColType& ...cols)
     {
         out << quote_policy::process(std::to_string(t), dl.quote) << dl.delimiter;
         write_helper(cols...);
