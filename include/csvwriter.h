@@ -48,14 +48,8 @@
 #include <type_traits>
 
 
-namespace ios
+namespace libcsv
 {
-
-const char CsvSeparator = ',';
-const char TsvSeparator = '\t';
-const char ColpnSeparator = ':';
-const char ScsvSeparator = ';';
-
 
 namespace error
 {
@@ -137,7 +131,7 @@ struct cannot_open_file :
 
 
 
-class LineWriter
+/*class LineWriter
 {
 private:
     static const int block_len = 1 << 24;
@@ -177,7 +171,7 @@ public:
     }
 
 
-};
+};*/
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -245,17 +239,6 @@ struct duplicated_column_in_header :
     }
 };
 
-struct header_missing :
-        base,
-        with_file_name
-{
-    void format_error_message() const
-    {
-        std::snprintf(error_message_buffer, sizeof(error_message_buffer),
-                      "Header missing in file \"%s\".", file_name.c_str());
-    }
-};
-
 struct too_few_columns :
         base,
         with_file_name,
@@ -285,35 +268,47 @@ struct too_many_columns :
 
 
 //Quote policies
-template<char sep>
+template<typename separator>
 struct quote_all
 {
-    static void process(std::string& str)
+    template<typename ... ColType>
+    constexpr static std::string process(const std::string& str, const separator& sep, ColType ...other_special_chars)
     {
-        str = sep + str + sep;
+        return sep + str + sep;
     }
 };
 
-template<char sep, char ... special_char_list>
+template<typename separator>
+struct quote_non_numeric
+{
+    template<typename ...ColType>
+    constexpr static std::string process(const std::string& str, const separator& sep, ColType ...other_special_chars)
+    {
+        return sep + str + sep;
+    }
+};
+
+template<typename separator>
 struct quote_minimal
 {
 private:
-    constexpr static bool is_special_char(char)
+    constexpr static bool is_special_char(separator)
     {
         return false;
     }
 
-    template<typename ...OtherTrimChars>
-    constexpr static bool is_special_char(char c, char trim_char, OtherTrimChars...other_special_chars)
+    template<typename ...ColType>
+    constexpr static bool is_special_char(separator c, separator trim_char, ColType ...other_special_chars)
     {
         return c == trim_char || is_special_char(c, other_special_chars...);
     }
 
-    constexpr static bool is_special_string(const std::string& str)
+    template <typename ...ColType>
+    constexpr static bool is_special_string(const std::string& str, ColType& ...cols)
     {
         for(const char glyph : str)
         {
-            if(is_special_char(glyph, special_char_list...))
+            if(is_special_char(glyph, cols...))
             {
                 return true;
             }
@@ -323,43 +318,40 @@ private:
     }
 
 public:
-    static void process(std::string& str)
+    template <typename ...ColType>
+    constexpr static std::string process(const std::string& str, const separator& sep, ColType& ...cols)
     {
-        if(is_special_string(str))
+        if(is_special_string(str, cols...))
         {
-
+            return sep + str + sep;
         }
+        return str;
     }
 };
 
 
-template<char sep>
+template<typename separator>
 struct quote_none
 {
-    static void process(std::string& str)
+    template<typename ...ColType>
+    constexpr static std::string process(const std::string& str, const separator& sep, ColType ...other_special_chars)
     {
-        str = sep + str + sep;
+        return str;
     }
 };
 
 //Dialects
-template <typename Char>
+template <typename Char, typename quote_policy = quote_minimal<Char>>
 struct Dialect
 {
-/*    using DelimiterType = Delimiter;
-    using LineTerminatorType = LineTerminator;
-    using QuoteType = Quote;
-    using CommentType = Comment;
-    using QuotePolicyType = QuotePolicy;*/
-
     using char_type = Char;
+    using quote_policy_type = quote_policy;
 
     constexpr Dialect() = default;
 
     constexpr Dialect(char_type delimiter1, char_type lineTerminator1, char_type quote1, char_type comment1) :
             delimiter(delimiter1), lineTerminator(lineTerminator1), quote(quote1), comment(comment1)
     {}
-
 
     char_type delimiter;
     char_type lineTerminator;
@@ -375,29 +367,22 @@ constexpr const Dialect<char> ColonSV = Dialect<char>(',', '\n', '"', '#');
 
 
 
-/*template<unsigned column_count,
-         char separator = ',',
-         typename quote_policy = quote_none<'"'>,
-         char comment_style = '#'
->*/
-template <size_t column_count, template <char> typename quote_policy, typename DialectType = Dialect<char>>
+template <size_t column_count,
+        typename OutputStreamType,
+        typename DialectType = Dialect<char>
+>
 class DSVWriter
 {
 public:
-    /*using DelimiterType = typename DialectType::DelimiterType;
-    using LineTerminatorType = typename DialectType::LineTerminatorType;
-    using QuoteType = typename DialectType::QuoteType;
-    using CommentType = typename DialectType::CommentType;*/
+    using char_type = typename DialectType::char_type;
+    using quote_policy = typename DialectType::quote_policy_type;
 private:
     //LineWriter out;
     DialectType dl;
-    std::ofstream out;
+    OutputStreamType out;
     char* (row[column_count]);
     std::string column_names[column_count];
 
-    bool m_force_double_quotes = false;
-
-    char separator = ',';
     template<typename ...ColNames>
     void set_column_names(std::string s, ColNames...cols)
     {
@@ -416,109 +401,42 @@ public:
 
     DSVWriter& operator=(const DSVWriter&) = delete;
 
-    DSVWriter(const std::string& filename, const DialectType& dialect = CSV, bool force_double_quotes = false)
-            : dl(CSV), m_force_double_quotes(force_double_quotes)
+    DSVWriter(const std::string& filename, const DialectType& dialect = CSV)
+            : dl(dialect)
     {
         out.open(filename, std::ios::binary);
     }
 
-
-    /*template<typename ...Args>
-    explicit CSVWriter(Args&& ...args) : out(std::forward<Args>(args)...)
+    DialectType get_dialect() const
     {
-        std::fill(row, row + column_count, nullptr);
-        col_order.resize(column_count);
-        for (unsigned i = 0; i < column_count; ++i)
-            col_order[i] = i;
-        for (unsigned i = 1; i <= column_count; ++i)
-            column_names[i - 1] = "col" + std::to_string(i);
-    }*/
-
-    template<typename ...ColNames>
-    void write_header(ColNames...cols)
-    {
-        static_assert(sizeof...(ColNames) >= column_count, "not enough column names specified");
-        static_assert(sizeof...(ColNames) <= column_count, "too many column names specified");
-        try
-        {
-            set_column_names(std::forward<ColNames>(cols)...);
-
-            /*detail::parse_header_line
-                    <column_count, trim_policy, quote_policy>
-                    (line, col_order, column_names, ignore_policy);*/
-        }
-        catch (error::with_file_name& err)
-        {
-            //err.set_file_name(out.get_truncated_file_name());
-            throw;
-        }
+        return dl;
     }
-
-    template<typename ...ColNames>
-    void set_header(ColNames...cols)
-    {
-        static_assert(sizeof...(ColNames) >= column_count,
-                      "not enough column names specified");
-        static_assert(sizeof...(ColNames) <= column_count,
-                      "too many column names specified");
-        set_column_names(std::forward<ColNames>(cols)...);
-        std::fill(row, row + column_count, nullptr);
-    }
-
 private:
 
     template<typename T>
-    typename std::enable_if<!std::is_pod<T>::value, void>::type parse_helper(T& t)
+    constexpr typename std::enable_if<!std::is_pod<T>::value, void>::type write_helper(T& t)
     {
-        if(m_force_double_quotes)
-        {
-            out << '"' << t << '"' << '\n';
-        }
-        else
-        {
-            out << t << '\n';
-        }
+        out << quote_policy::process(t, dl.quote) << dl.lineTerminator;
     }
 
     template<typename T, typename ...ColType>
-    typename std::enable_if<std::is_pod<T>::value, void>::type parse_helper(T& t)
+    constexpr typename std::enable_if<std::is_pod<T>::value, void>::type write_helper(T& t)
     {
-        if(m_force_double_quotes)
-        {
-            out << '"' << std::to_string(t) << '"' << '\n';
-        }
-        else
-        {
-            out << std::to_string(t) << '\n';
-        }
+        out << quote_policy::process(std::to_string(t), dl.quote) << dl.lineTerminator;
     }
 
     template<typename T, typename ...ColType>
-    typename std::enable_if<!std::is_pod<T>::value, void>::type parse_helper(T& t, ColType& ...cols)
+    constexpr typename std::enable_if<!std::is_pod<T>::value, void>::type write_helper(T& t, ColType& ...cols)
     {
-        if(m_force_double_quotes)
-        {
-            out << '"' << t << '"' << separator;
-        }
-        else
-        {
-            out << t << separator;
-        }
-        parse_helper(cols...);
+        out << quote_policy::process(t, dl.quote, dl.delimiter, dl.quote, dl.lineTerminator) << dl.delimiter;
+        write_helper(cols...);
     }
 
     template<typename T, typename ...ColType>
-    typename std::enable_if<std::is_pod<T>::value, void>::type parse_helper(T& t, ColType& ...cols)
+    constexpr typename std::enable_if<std::is_pod<T>::value, void>::type write_helper(T& t, ColType& ...cols)
     {
-        if(m_force_double_quotes)
-        {
-            out << '"' << std::to_string(t) << '"' << separator;
-        }
-        else
-        {
-            out << std::to_string(t) << separator;
-        }
-        parse_helper(cols...);
+        out << quote_policy::process(std::to_string(t), dl.quote) << dl.delimiter;
+        write_helper(cols...);
     }
 
 
@@ -535,7 +453,36 @@ public:
         {
             try
             {
-                parse_helper(cols...);
+                write_helper(cols...);
+            }
+            catch (error::with_file_name& err)
+            {
+                //err.set_file_name(out.get_truncated_file_name());
+                throw;
+            }
+        }
+        catch (error::with_file_line& err)
+        {
+            //err.set_file_line(out.get_file_line());
+            throw;
+        }
+
+        return true;
+    }
+
+    template<typename ...ColType>
+    bool write_comment(ColType& ...cols)
+    {
+        static_assert(sizeof...(ColType) >= column_count,
+                      "not enough columns specified");
+        static_assert(sizeof...(ColType) <= column_count,
+                      "too many columns specified");
+        try
+        {
+            try
+            {
+                out << dl.comment;
+                write_helper(cols...);
             }
             catch (error::with_file_name& err)
             {
@@ -553,17 +500,6 @@ public:
     }
 };
 
-
-/*template<unsigned column_count,
-         typename Dialect
->
-using TSVWriter = DSVWriter<column_count, Dialect>;*/
-
-
-/*template<unsigned column_count,
-         typename Dialect
->
-using ColonWriter = CSVWriter<column_count, separator>;*/
 }
 #endif
 
