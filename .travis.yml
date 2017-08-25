@@ -19,6 +19,8 @@ script:
  - cmake .
  - make
  - if [ "$TRAVIS_OS_NAME" = "linux" ] && [ "${MATRIX_EVAL}" = "CC=gcc-4.9 && CXX=g++-4.9" ]; then cppcheck --error-exitcode=1 example/ ; fi
+ - if [ "$TRAVIS_OS_NAME" = "linux" ] && [ "${MATRIX_EVAL}" = "CC=clang-4.0 && CXX=clang++-4.0" ]; then cmake -DCMAKE_CXX_COMPILER=/usr/share/clang/scan-build-4.0/libexec/c++-analyzer . ; fi
+ - if [ "$TRAVIS_OS_NAME" = "linux" ] && [ "${MATRIX_EVAL}" = "CC=clang-4.0 && CXX=clang++-4.0" ]; then scan-build make ; fi
 
 env:
   global:
@@ -140,17 +142,18 @@ matrix:
       env:
         - MATRIX_EVAL="CC=clang-4.0 && CXX=clang++-4.0"
 
-    # works on Trusty
-    - os: linux
-      addons:
-        apt:
-          sources:
-            - sourceline: 'deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-5.0 main'
-              key_url: 'https://apt.llvm.org/llvm-snapshot.gpg.key'
-          packages:
-            - clang-5.0
-      env:
-        - MATRIX_EVAL="CC=clang-5.0 && CXX=clang++-5.0"
+#   Disabled it because it cannot be installed properly
+#
+#    - os: linux
+#      addons:
+#        apt:
+#          sources:
+#            - sourceline: 'deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-5.0 main'
+#              key_url: 'https://apt.llvm.org/llvm-snapshot.gpg.key'
+#          packages:
+#            - clang-5.0
+#      env:
+#        - MATRIX_EVAL="CC=clang-5.0 && CXX=clang++-5.0"
 
 
 
