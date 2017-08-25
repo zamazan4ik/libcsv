@@ -276,3 +276,7 @@ A: When using GCC have you linked against -lpthread? Read the installation secti
 Q: Does the library support UTF?
 
 A: The library has basic UTF-8 support, or to be more precise it does not break when passing UTF-8 strings through it. If you read a `char*` then you get a pointer to the UTF-8 string. You will have to decode the string on your own. The separator, quoting, and commenting characters used by the library can only be ASCII characters.
+
+Q: What versioning system?
+
+A: I use system X.Y.Z system. X changes only with breaking backward compatibility, Y changes only with adding new functionality, Z there is for bug-fixing.
