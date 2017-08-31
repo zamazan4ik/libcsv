@@ -46,10 +46,47 @@
 #include <istream>
 #include <fstream>
 #include <type_traits>
+#include <tuple>
+
+
+#if (__cplusplus >= 201703L)
+
+#include <filesystem>
+
+using std::apply;
+
+#else
+
+namespace detail
+{
+template<class F, class Tuple, std::size_t... I>
+constexpr decltype(auto) apply_impl(F&& f, Tuple&& t, std::index_sequence<I...>)
+{
+    return std::invoke(std::forward<F>(f), std::get<I>(std::forward<Tuple>(t))...);
+}
+
+
+template<class F, class Tuple>
+constexpr decltype(auto) apply(F&& f, Tuple&& t)
+{
+    return detail::apply_impl(
+            std::forward<F>(f), std::forward<Tuple>(t),
+            std::make_index_sequence<std::tuple_size<std::decay_t<Tuple>>::value>{});
+}
+}
+
+using detail::apply;
+
+#endif
+
+
+
 
 
 namespace libcsv
 {
+
+
 
 namespace error
 {
@@ -330,18 +367,18 @@ public:
 };
 
 
-template<typename separator>
 struct quote_none
 {
+public:
     template<typename ...ColType>
-    static std::string process(const std::string& str, const separator& sep, ColType ...other_special_chars)
+    std::string operator()(const std::string& str, ColType ...other_special_chars)
     {
         return str;
     }
 };
 
 //Dialects
-template <typename Char, typename quote_policy = quote_minimal<Char>>
+template <typename Char, typename quote_policy>
 struct Dialect
 {
     using char_type = Char;
@@ -349,27 +386,30 @@ struct Dialect
 
     constexpr Dialect() = default;
 
-    constexpr Dialect(char_type delimiter1, char_type lineTerminator1, char_type quote1, char_type comment1) :
-            delimiter(delimiter1), lineTerminator(lineTerminator1), quote(quote1), comment(comment1)
+    constexpr Dialect(char_type delimiter1, char_type lineTerminator1, char_type quote1, char_type comment1,
+                      quote_policy quot_pol) :
+            delimiter(delimiter1), lineTerminator(lineTerminator1), quote(quote1), comment(comment1), q_pol(quot_pol)
     {}
 
     char_type delimiter;
     char_type lineTerminator;
     char_type quote;
     char_type comment;
+
+    quote_policy q_pol;
 };
 
-constexpr const Dialect<char> CSV     = Dialect<char>(',', '\n', '"', '#');
-constexpr const Dialect<char> TSV     = Dialect<char>('\t', '\n', '"', '#');
-constexpr const Dialect<char> SCSV    = Dialect<char>(';', '\n', '"', '#');
-constexpr const Dialect<char> PSV     = Dialect<char>('|', '\n', '"', '#');
-constexpr const Dialect<char> ColonSV = Dialect<char>(',', '\n', '"', '#');
+constexpr const Dialect<char, quote_none> CSV     = Dialect<char, quote_none>(',', '\n', '"', '#', quote_none());
+constexpr const Dialect<char, quote_none> TSV     = Dialect<char, quote_none>('\t', '\n', '"', '#', quote_none());
+constexpr const Dialect<char, quote_none> SCSV    = Dialect<char, quote_none>(';', '\n', '"', '#', quote_none());
+constexpr const Dialect<char, quote_none> PSV     = Dialect<char, quote_none>('|', '\n', '"', '#', quote_none());
+constexpr const Dialect<char, quote_none> ColonSV = Dialect<char, quote_none>(',', '\n', '"', '#', quote_none());
 
 
 
 template <size_t column_count,
         typename OutputStreamType = std::ofstream,
-        typename DialectType = Dialect<char>
+        typename DialectType = Dialect<char, quote_none>
 >
 class DSVWriter
 {
@@ -377,22 +417,8 @@ public:
     using char_type = typename DialectType::char_type;
     using quote_policy = typename DialectType::quote_policy_type;
 private:
-    //LineWriter out;
     DialectType dl;
     OutputStreamType out;
-    char* (row[column_count]);
-    std::string column_names[column_count];
-
-    template<typename ...ColNames>
-    void set_column_names(std::string s, ColNames...cols)
-    {
-        column_names[column_count - sizeof...(ColNames) - 1] = std::move(s);
-        set_column_names(std::forward<ColNames>(cols)...);
-    }
-
-    void set_column_names()
-    {}
-
 
 public:
     DSVWriter() = delete;
@@ -400,13 +426,19 @@ public:
     DSVWriter(const DSVWriter&) = delete;
 
     DSVWriter& operator=(const DSVWriter&) = delete;
-
+#if (__cplusplus < 201703L)
     DSVWriter(const std::string& filename, const DialectType& dialect = CSV)
             : dl(dialect)
     {
         out.open(filename, std::ios::binary);
     }
-
+#else
+    DSVWriter(const std::experimental::filesystem::path& filename, const DialectType& dialect = CSV)
+            : dl(dialect)
+    {
+        out.open(filename, std::ios::binary);
+    }
+#endif
     DialectType get_dialect() const
     {
         return dl;
@@ -416,29 +448,28 @@ private:
     template<typename T>
     typename std::enable_if<!std::is_pod<T>::value, void>::type write_helper(T& t)
     {
-        out << quote_policy::process(t, dl.quote) << dl.lineTerminator;
+        out << dl.q_pol(t, dl.quote) << dl.lineTerminator;
     }
 
     template<typename T, typename ...ColType>
     typename std::enable_if<std::is_pod<T>::value, void>::type write_helper(T& t)
     {
-        out << quote_policy::process(std::to_string(t), dl.quote) << dl.lineTerminator;
+        out << dl.q_pol(std::to_string(t), dl.delimiter, dl.quote, dl.lineTerminator) << dl.lineTerminator;
     }
 
     template<typename T, typename ...ColType>
     typename std::enable_if<!std::is_pod<T>::value, void>::type write_helper(T& t, ColType& ...cols)
     {
-        out << quote_policy::process(t, dl.quote, dl.delimiter, dl.quote, dl.lineTerminator) << dl.delimiter;
+        out << dl.q_pol(t, dl.quote, dl.delimiter, dl.quote, dl.lineTerminator) << dl.delimiter;
         write_helper(cols...);
     }
 
     template<typename T, typename ...ColType>
     typename std::enable_if<std::is_pod<T>::value, void>::type write_helper(T& t, ColType& ...cols)
     {
-        out << quote_policy::process(std::to_string(t), dl.quote) << dl.delimiter;
+        out << dl.q_pol(std::to_string(t), dl.quote) << dl.delimiter;
         write_helper(cols...);
     }
-
 
 
 public:
@@ -449,24 +480,14 @@ public:
                       "not enough columns specified");
         static_assert(sizeof...(ColType) <= column_count,
                       "too many columns specified");
-        try
-        {
-            try
-            {
-                write_helper(cols...);
-            }
-            catch (error::with_file_name& err)
-            {
-                //err.set_file_name(out.get_truncated_file_name());
-                throw;
-            }
-        }
-        catch (error::with_file_line& err)
-        {
-            //err.set_file_line(out.get_file_line());
-            throw;
-        }
+        write_helper(cols...);
+        return true;
+    }
 
+    template<typename ...Args>
+    bool write_row_from_object(std::tuple<Args...>&& t)
+    {
+        apply([this] (auto&& ...args) { this->write_row(args...); }, std::forward<std::tuple<Args...>>(t));
         return true;
     }
 
@@ -477,25 +498,9 @@ public:
                       "not enough columns specified");
         static_assert(sizeof...(ColType) <= column_count,
                       "too many columns specified");
-        try
-        {
-            try
-            {
-                out << dl.comment;
-                write_helper(cols...);
-            }
-            catch (error::with_file_name& err)
-            {
-                //err.set_file_name(out.get_truncated_file_name());
-                throw;
-            }
-        }
-        catch (error::with_file_line& err)
-        {
-            //err.set_file_line(out.get_file_line());
-            throw;
-        }
 
+        out << dl.comment;
+        write_helper(cols...);
         return true;
     }
 };
