@@ -387,23 +387,25 @@ struct Dialect
     constexpr Dialect() = default;
 
     constexpr Dialect(char_type delimiter1, char_type lineTerminator1, char_type quote1, char_type comment1,
-                      quote_policy quot_pol) :
-            delimiter(delimiter1), lineTerminator(lineTerminator1), quote(quote1), comment(comment1), q_pol(quot_pol)
+                      char_type escape1, quote_policy quot_pol) :
+            delimiter(delimiter1), lineTerminator(lineTerminator1), quote(quote1), comment(comment1),
+            escape(escape1), q_pol(quot_pol)
     {}
 
     char_type delimiter;
     char_type lineTerminator;
     char_type quote;
+    char_type escape;
     char_type comment;
 
     quote_policy q_pol;
 };
 
-constexpr const Dialect<char, quote_none> CSV     = Dialect<char, quote_none>(',', '\n', '"', '#', quote_none());
-constexpr const Dialect<char, quote_none> TSV     = Dialect<char, quote_none>('\t', '\n', '"', '#', quote_none());
-constexpr const Dialect<char, quote_none> SCSV    = Dialect<char, quote_none>(';', '\n', '"', '#', quote_none());
-constexpr const Dialect<char, quote_none> PSV     = Dialect<char, quote_none>('|', '\n', '"', '#', quote_none());
-constexpr const Dialect<char, quote_none> ColonSV = Dialect<char, quote_none>(',', '\n', '"', '#', quote_none());
+constexpr const Dialect<char, quote_none> CSV     = Dialect<char, quote_none>(',', '\n', '"', '#', '\\', quote_none());
+constexpr const Dialect<char, quote_none> TSV     = Dialect<char, quote_none>('\t', '\n', '"', '#', '\\', quote_none());
+constexpr const Dialect<char, quote_none> SCSV    = Dialect<char, quote_none>(';', '\n', '"', '#', '\\', quote_none());
+constexpr const Dialect<char, quote_none> PSV     = Dialect<char, quote_none>('|', '\n', '"', '#', '\\', quote_none());
+constexpr const Dialect<char, quote_none> ColonSV = Dialect<char, quote_none>(',', '\n', '"', '#', '\\', quote_none());
 
 
 
@@ -426,6 +428,7 @@ public:
     DSVWriter(const DSVWriter&) = delete;
 
     DSVWriter& operator=(const DSVWriter&) = delete;
+
 #if (__cplusplus < 201703L)
     DSVWriter(const std::string& filename, const DialectType& dialect = CSV)
             : dl(dialect)
@@ -439,6 +442,7 @@ public:
         out.open(filename, std::ios::binary);
     }
 #endif
+
     DialectType get_dialect() const
     {
         return dl;
@@ -448,7 +452,7 @@ private:
     template<typename T>
     typename std::enable_if<!std::is_pod<T>::value, void>::type write_helper(T& t)
     {
-        out << dl.q_pol(t, dl.quote) << dl.lineTerminator;
+        out << dl.q_pol(t, dl.delimiter, dl.quote, dl.lineTerminator) << dl.lineTerminator;
     }
 
     template<typename T, typename ...ColType>
@@ -460,14 +464,14 @@ private:
     template<typename T, typename ...ColType>
     typename std::enable_if<!std::is_pod<T>::value, void>::type write_helper(T& t, ColType& ...cols)
     {
-        out << dl.q_pol(t, dl.quote, dl.delimiter, dl.quote, dl.lineTerminator) << dl.delimiter;
+        out << dl.q_pol(t, dl.delimiter, dl.quote, dl.lineTerminator) << dl.delimiter;
         write_helper(cols...);
     }
 
     template<typename T, typename ...ColType>
     typename std::enable_if<std::is_pod<T>::value, void>::type write_helper(T& t, ColType& ...cols)
     {
-        out << dl.q_pol(std::to_string(t), dl.quote) << dl.delimiter;
+        out << dl.q_pol(std::to_string(t), dl.delimiter, dl.quote, dl.lineTerminator) << dl.delimiter;
         write_helper(cols...);
     }
 
