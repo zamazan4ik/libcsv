@@ -399,7 +399,7 @@ private:
         // We open the file in binary mode as it makes no difference under *nix
         // and under Windows we handle \r\n newlines ourself.
         FILE* file = std::fopen(file_name, "rb");
-        if (file == 0)
+        if (file == nullptr)
         {
             int x = errno; // store errno as soon as possible, doing it after constructor call can fail.
             error::can_not_open_file err;
@@ -1571,6 +1571,269 @@ template<unsigned column_count,
         typename comment_policy = no_comment
 >
 using ColonReader = CSVReader<column_count, trim_policy, quote_policy, overflow_policy, comment_policy>;
+
+//!SCSVReader
+/*!
+	Class for reading semicolon-separated files.
+*/
+template<unsigned column_count,
+        typename trim_policy = trim_chars<>,
+        typename quote_policy = no_quote_escape<';'>,
+        typename overflow_policy = throw_on_overflow,
+        typename comment_policy = no_comment
+>
+using SCSVReader = CSVReader<column_count, trim_policy, quote_policy, overflow_policy, comment_policy>;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+enum class Types {INT, FLOAT, };
+
+
+
+template<typename overflow_policy, typename T>
+bool check_unsigned_integer(const char* col, T& x)
+{
+    x = 0;
+    while (*col != '\0')
+    {
+        if ('0' <= *col && *col <= '9')
+        {
+            T y = *col - '0';
+            if (x > (std::numeric_limits<T>::max() - y) / 10)
+            {
+                overflow_policy::on_overflow(x);
+                return false;
+            }
+            x = 10 * x + y;
+        }
+        else
+        {
+            return false;
+        }
+        ++col;
+    }
+    return true;
+}
+
+template<typename overflow_policy, typename T>
+bool check_signed_integer(const char* col, T& x)
+{
+    if (*col == '-')
+    {
+        ++col;
+
+        x = 0;
+        while (*col != '\0')
+        {
+            if ('0' <= *col && *col <= '9')
+            {
+                T y = *col - '0';
+                if (x < (std::numeric_limits<T>::min() + y) / 10)
+                {
+                    overflow_policy::on_underflow(x);
+                    return false;
+                }
+                x = 10 * x - y;
+            }
+            else
+            {
+                return false;
+            }
+            ++col;
+        }
+        return true;
+    }
+    else if (*col == '+')
+    {
+        ++col;
+    }
+    return check_unsigned_integer<overflow_policy>(col, x);
+}
+
+
+template<typename T>
+bool check_float(const char* col, T& x)
+{
+    bool is_neg = false;
+    if (*col == '-')
+    {
+        is_neg = true;
+        ++col;
+    }
+    else if (*col == '+')
+    {
+        ++col;
+    }
+
+    x = 0;
+    while ('0' <= *col && *col <= '9')
+    {
+        int y = *col - '0';
+        x *= 10;
+        x += y;
+        ++col;
+    }
+
+    if (*col == '.' || *col == ',')
+    {
+        ++col;
+        T pos = 1;
+        while ('0' <= *col && *col <= '9')
+        {
+            pos /= 10;
+            int y = *col - '0';
+            ++col;
+            x += y * pos;
+        }
+    }
+
+    if (*col == 'e' || *col == 'E')
+    {
+        ++col;
+        int e;
+
+        bool res = check_signed_integer<set_to_max_on_overflow>(col, e);
+
+        if(!res)
+        {
+            return false;
+        }
+
+        if (e != 0)
+        {
+            T base;
+            if (e < 0)
+            {
+                base = 0.1;
+                e = -e;
+            }
+            else
+            {
+                base = 10;
+            }
+
+            while (e != 1)
+            {
+                if ((e & 1) == 0)
+                {
+                    base = base * base;
+                    e >>= 1;
+                }
+                else
+                {
+                    x *= base;
+                    --e;
+                }
+            }
+            x *= base;
+        }
+    }
+    else
+    {
+        if (*col != '\0')
+        {
+            return false;
+        }
+    }
+
+    if (is_neg)
+    {
+        x = -x;
+    }
+
+    return true;
+}
+
+
+
+//Sniffer class
+template<unsigned column_count,
+        typename trim_policy = trim_chars<' ', '\t'>,
+        typename quote_policy = no_quote_escape<','>,
+        typename overflow_policy = throw_on_overflow,
+        typename comment_policy = no_comment
+>
+class Sniffer
+{
+private:
+    char* (row[column_count]);
+    std::vector<int> col_order;
+
+public:
+    template<typename Iterator, typename DelimIterator>
+    char guess_delimiter(Iterator begin, Iterator end,
+                         DelimIterator begin_delim, DelimIterator end_delim)
+    {
+        char delimiter;
+
+        
+
+        return delimiter;
+    }
+
+    /*template<typename ...ColType>
+    bool read_row(ColType& ...cols)
+    {
+        static_assert(sizeof...(ColType) >= column_count,
+                      "not enough columns specified");
+        static_assert(sizeof...(ColType) <= column_count,
+                      "too many columns specified");
+
+                char* line;
+                do
+                {
+                    line = in.next_line();
+                    if (!line)
+                    {
+                        return false;
+                    }
+                }
+                while (comment_policy::is_comment(line));
+
+                detail::parse_line<trim_policy, quote_policy>
+                        (line, row, col_order);
+
+                parse_helper(0, cols...);
+            }
+
+
+        return true;
+    }*/
+
+
+
+    // Creates a dictionary of types of data in each column. If any
+    // column is of a single type (say, integers), *except* for the first
+    // row, then the first row is presumed to be labels. If the type
+    // can't be determined, it is assumed to be a string in which case
+    // the length of the string is the determining factor: if all of the
+    // rows except for the first are the same length, it's a header.
+    // Finally, a 'vote' is taken at the end for each column, adding or
+    // subtracting from the likelihood of the first row being a header.
+    bool has_header(const std::string& str)
+    {
+        detail::parse_line<trim_policy, quote_policy>
+                (const_cast<char*>(str.c_str()), row, col_order);
+    }
+
+    bool get_dialect()
+    {
+
+    }
+};
+
 }
 #endif
 
